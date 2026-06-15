@@ -6,18 +6,18 @@
 /*   By: aayasrah <aayasrah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/13 19:59:49 by aayasrah          #+#    #+#             */
-/*   Updated: 2026/06/14 20:21:25 by aayasrah         ###   ########.fr       */
+/*   Updated: 2026/06/15 22:29:10 by aayasrah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-static void	destory_locks_so_far(t_diner *diner,int n)
+static void	destory_locks_so_far(t_diner *diner, int n)
 {
-	int i;
+	int	i;
 
 	pthread_mutex_destroy(&diner->print_lock);
-	pthread_mutex_destroy(&diner->simulation_end_lock);
+	pthread_mutex_destroy(&diner->is_dinning_lock);
 	i = 0;
 	while (i < n)
 	{
@@ -26,14 +26,13 @@ static void	destory_locks_so_far(t_diner *diner,int n)
 	}
 }
 
-
-int init_diner_locks(t_diner *diner)
+int	init_diner_locks(t_diner *diner)
 {
 	int	i;
-	
+
 	if (pthread_mutex_init(&diner->print_lock, NULL) != SUCCESS)
 		return (FAILURE);
-	if (pthread_mutex_init(&diner->simulation_end_lock, NULL) != SUCCESS)
+	if (pthread_mutex_init(&diner->is_dinning_lock, NULL) != SUCCESS)
 	{
 		pthread_mutex_destroy(&diner->print_lock);
 		return (FAILURE);
@@ -51,7 +50,7 @@ int init_diner_locks(t_diner *diner)
 	return (SUCCESS);
 }
 
-int init_philos(t_diner *diner)
+int	init_philos(t_diner *diner)
 {
 	int	i;
 
@@ -60,7 +59,7 @@ int init_philos(t_diner *diner)
 	{
 		diner->philos[i].id = i + 1;
 		diner->philos[i].meals_eaten = 0;
-		diner->philos[i].last_meal_time = 0;
+		diner->philos[i].last_meal_time = get_time();
 		diner->philos[i].diner = diner;
 		if (i == diner->n_philos - 1)
 			diner->philos[i].right_fork = &diner->forks[0];
@@ -74,7 +73,7 @@ int init_philos(t_diner *diner)
 	return (SUCCESS);
 }
 
-int init_diner(t_diner *diner)
+int	init_diner(t_diner *diner)
 {
 	diner->philos = malloc(sizeof(t_philo) * diner->n_philos);
 	if (!diner->philos)
@@ -97,6 +96,7 @@ int init_diner(t_diner *diner)
 		free(diner->forks);
 		return (FAILURE);
 	}
+	diner->is_dinning = 1;
 	return (SUCCESS);
 }
 
@@ -107,15 +107,19 @@ int	start_diner(t_diner *diner)
 	if (init_diner(diner) == FAILURE)
 		return (FAILURE);
 	i = 0;
+	diner->start_time = get_time();
 	while (i < diner->n_philos)
 	{
-		if (pthread_create(&diner->philos[i].thread, NULL, cycle, &diner->philos[i]) != SUCCESS)
+		if (pthread_create(&diner->philos[i].thread, NULL, cycle,
+				&diner->philos[i]) != SUCCESS)
 		{
-			//free and close all
+			zero_out_is_dinning(diner);
+			join_threads(diner, i);
+			free_and_destory(diner);
 			return (FAILURE);
 		}
 		i++;
 	}
-	//mointor
+	monitor(diner);
 	return (SUCCESS);
 }

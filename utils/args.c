@@ -6,7 +6,7 @@
 /*   By: aayasrah <aayasrah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/13 16:31:41 by aayasrah          #+#    #+#             */
-/*   Updated: 2026/06/14 17:55:41 by aayasrah         ###   ########.fr       */
+/*   Updated: 2026/06/15 22:54:47 by aayasrah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,8 +80,8 @@ int	set_args(char **argv, t_diner *diner)
 		diner->min_meals = (int)ft_atol(argv[5]);
 	else
 		diner->min_meals = -1;
-	if (diner->n_philos <= 0 || diner->tt_die < 60 || diner->tt_eat < 60 ||
-		diner->tt_sleep < 60 || (argv[5] && diner->min_meals == 0))
+	if (diner->n_philos <= 0 || diner->tt_die < 60 || diner->tt_eat < 60
+		|| diner->tt_sleep < 60 || (argv[5] && diner->min_meals == 0))
 		return (FAILURE);
 	return (SUCCESS);
 }
